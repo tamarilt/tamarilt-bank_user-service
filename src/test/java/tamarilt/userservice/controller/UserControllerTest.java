@@ -10,11 +10,13 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import tamarilt.userservice.advice.exception.InvalidCredentialsException;
 import tamarilt.userservice.advice.exception.UserNotFoundException;
 import tamarilt.userservice.advice.exception.UsernameAlreadyExistsException;
+import tamarilt.userservice.controller.Impl.UserControllerImpl;
 import tamarilt.userservice.dto.request.LoginRequestDto;
 import tamarilt.userservice.dto.request.RegistrationRequestDto;
 import tamarilt.userservice.dto.response.TokensResponseDto;
@@ -31,16 +34,14 @@ import tamarilt.userservice.enums.Status;
 import tamarilt.userservice.service.UserService;
 
 @WebMvcTest(UserController.class)
+@Import(UserControllerImpl.class)
 class UserControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean
+    @MockBean
     private UserService userService;
-
-    @InjectMocks
-    private UserController userController;
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
