@@ -45,6 +45,9 @@ public class UserServiceTest {
     @Mock
     private JwtService jwtService;
 
+    @Mock
+    private EventProducer eventProducer;
+
     @InjectMocks
     private UserServiceImpl userService;
 
@@ -53,6 +56,7 @@ public class UserServiceTest {
         RegistrationRequestDto request = new RegistrationRequestDto("testuser", "password123");
     
     User user = new User();
+    user.setId(UUID.randomUUID());
     user.setUsername("testuser");
     user.setRole(Role.USER);
     user.setStatus(Status.ACTIVE);
@@ -86,6 +90,7 @@ void testRegisterUsernameExists() {
 void testLoginSuccess() {
     LoginRequestDto request = new LoginRequestDto("testuser", "password123");
     User user = new User();
+    user.setId(UUID.randomUUID());
     user.setUsername("testuser");
     user.setPasswordHash("encodedPassword");
 
