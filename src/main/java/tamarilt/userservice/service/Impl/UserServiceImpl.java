@@ -13,6 +13,7 @@ import tamarilt.userservice.advice.exception.UserNotFoundException;
 import tamarilt.userservice.advice.exception.UsernameAlreadyExistsException;
 import tamarilt.userservice.dto.request.LoginRequestDto;
 import tamarilt.userservice.dto.request.RegistrationRequestDto;
+import tamarilt.userservice.dto.response.TokenValidationResponseDto;
 import tamarilt.userservice.dto.response.TokensResponseDto;
 import tamarilt.userservice.dto.response.RegistrationResponseDto;
 import tamarilt.userservice.entity.User;
@@ -32,7 +33,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final EventProducer eventProducer;
-    
+
     @Override
     @Transactional
     public RegistrationResponseDto register(RegistrationRequestDto request) {
@@ -46,51 +47,47 @@ public class UserServiceImpl implements UserService {
             user.setPasswordHash(encodedPassword);
             user.setRole(Role.USER);
             user.setStatus(Status.ACTIVE);
-            
+
             User savedUser = userRepository.save(user);
-            
+
             String accessToken = jwtService.generateAccessToken(savedUser);
             String refreshToken = jwtService.generateRefreshToken(savedUser);
-            
+
             eventProducer.sendSuccess("REGISTER_USER", Map.of(
                     "userId", savedUser.getId().toString(),
-                    "username", savedUser.getUsername()
-            ));
+                    "username", savedUser.getUsername()));
 
             return userMapper.toResponseDto(savedUser, accessToken, refreshToken);
         } catch (UsernameAlreadyExistsException e) {
             eventProducer.sendError("REGISTER_USER", Map.of(
                     "username", request.getUsername(),
-                    "error", e.getMessage()
-            ));
+                    "error", e.getMessage()));
             throw e;
         }
     }
-    
+
     @Override
     public TokensResponseDto login(LoginRequestDto request) {
         try {
             User user = userRepository.findByUsername(request.getUsername())
-            .orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
-            
+                    .orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
+
             if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
                 throw new InvalidCredentialsException("Неверный пароль");
             }
-            
+
             String accessToken = jwtService.generateAccessToken(user);
             String refreshToken = jwtService.generateRefreshToken(user);
-            
+
             eventProducer.sendSuccess("LOGIN_USER", Map.of(
                     "userId", user.getId().toString(),
-                    "username", user.getUsername()
-            ));
+                    "username", user.getUsername()));
 
             return userMapper.toLoginResponseDto(accessToken, refreshToken);
         } catch (UserNotFoundException | InvalidCredentialsException e) {
             eventProducer.sendError("LOGIN_USER", Map.of(
                     "username", request.getUsername(),
-                    "error", e.getMessage()
-            ));
+                    "error", e.getMessage()));
             throw e;
         }
     }
@@ -103,24 +100,39 @@ public class UserServiceImpl implements UserService {
 
             UUID userId = jwtService.getUserIdFromToken(token);
             User user = userRepository.findById(userId)
-            .orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
+                    .orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
 
             String accessToken = jwtService.generateAccessToken(user);
             String refreshToken = jwtService.generateRefreshToken(user);
 
             eventProducer.sendSuccess("REFRESH_TOKEN", Map.of(
-                    "userId", userId.toString()
-            ));
+                    "userId", userId.toString()));
 
             return TokensResponseDto.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .build();
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
+                    .build();
         } catch (InvalidCredentialsException | UserNotFoundException e) {
             eventProducer.sendError("REFRESH_TOKEN", Map.of(
-                    "error", e.getMessage()
-            ));
+                    "error", e.getMessage()));
             throw e;
         }
+    }
+
+    @Override
+    public TokenValidationResponseDto validateAccessToken(String token) {
+        if (!jwtService.validateToken(token)) {
+            throw new InvalidCredentialsException("Невалидный токен");
+        }
+
+        String userId = jwtService.getUserIdFromToken(token).toString();
+        String role = jwtService.getRoleFromToken(token);
+
+        eventProducer.sendSuccess("VALIDATE_TOKEN", Map.of("userId", userId));
+
+        return TokenValidationResponseDto.builder()
+                .userId(userId)
+                .role(role)
+                .build();
     }
 }

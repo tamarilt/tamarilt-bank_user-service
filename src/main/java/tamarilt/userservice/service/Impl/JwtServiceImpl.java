@@ -36,14 +36,14 @@ public class JwtServiceImpl implements JwtService {
     public String generateAccessToken(User user) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", user.getRole().name());
-        
+
         return createToken(claims, user.getId().toString(), accessTokenExpiration);
     }
 
     @Override
     public String generateRefreshToken(User user) {
         Map<String, Object> claims = new HashMap<>();
-        
+
         return createToken(claims, user.getId().toString(), refreshTokenExpiration);
     }
 
@@ -51,13 +51,12 @@ public class JwtServiceImpl implements JwtService {
     public boolean validateToken(String token) {
         try {
             Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token);
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token);
             return true;
-        } catch (ExpiredJwtException | UnsupportedJwtException |
-                 MalformedJwtException | SignatureException |
-                 IllegalArgumentException e) {
+        } catch (ExpiredJwtException | UnsupportedJwtException | MalformedJwtException | SignatureException
+                | IllegalArgumentException e) {
             return false;
         }
     }
@@ -69,6 +68,11 @@ public class JwtServiceImpl implements JwtService {
         return UUID.fromString(subject);
     }
 
+    @Override
+    public String getRoleFromToken(String token) {
+        Claims claims = getAllClaimsFromToken(token);
+        return claims.get("role", String.class);
+    }
 
     private String createToken(Map<String, Object> claims, String subject, Long expiration) {
         Date now = new Date();
@@ -83,7 +87,6 @@ public class JwtServiceImpl implements JwtService {
                 .compact();
     }
 
- 
     private Claims getAllClaimsFromToken(String token) {
         return Jwts.parser()
                 .verifyWith(getSigningKey())

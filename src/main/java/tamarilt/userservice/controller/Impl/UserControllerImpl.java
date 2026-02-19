@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import tamarilt.userservice.controller.UserController;
 import tamarilt.userservice.dto.request.LoginRequestDto;
 import tamarilt.userservice.dto.request.RegistrationRequestDto;
+import tamarilt.userservice.dto.response.TokenValidationResponseDto;
 import tamarilt.userservice.dto.response.TokensResponseDto;
 import tamarilt.userservice.dto.response.RegistrationResponseDto;
 import tamarilt.userservice.service.UserService;
@@ -20,16 +21,16 @@ import tamarilt.userservice.service.UserService;
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 public class UserControllerImpl implements UserController {
-    
+
     private final UserService userService;
-    
+
     @Override
     @PostMapping("/register")
     public ResponseEntity<RegistrationResponseDto> register(@Valid @RequestBody RegistrationRequestDto request) {
         RegistrationResponseDto response = userService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-    
+
     @Override
     @PostMapping("/login")
     public ResponseEntity<TokensResponseDto> login(@Valid @RequestBody LoginRequestDto request) {
@@ -44,5 +45,11 @@ public class UserControllerImpl implements UserController {
         return ResponseEntity.ok(response);
     }
 
+    @Override
+    @PostMapping("/validate-token")
+    public ResponseEntity<TokenValidationResponseDto> validateToken(@RequestBody String token) {
+        TokenValidationResponseDto response = userService.validateAccessToken(token);
+        return ResponseEntity.ok(response);
+    }
 
 }

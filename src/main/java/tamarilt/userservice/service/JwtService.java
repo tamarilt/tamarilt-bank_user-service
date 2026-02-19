@@ -8,7 +8,7 @@ import tamarilt.userservice.entity.User;
  * Сервис для работы с JWT токенами
  */
 public interface JwtService {
-    
+
     /**
      * Генерирует access token для пользователя
      *
@@ -16,7 +16,7 @@ public interface JwtService {
      * @return JWT access token
      */
     String generateAccessToken(User user);
-    
+
     /**
      * Генерирует refresh token для пользователя
      *
@@ -24,7 +24,7 @@ public interface JwtService {
      * @return JWT refresh token
      */
     String generateRefreshToken(User user);
-    
+
     /**
      * Валидирует JWT токен
      *
@@ -32,7 +32,7 @@ public interface JwtService {
      * @return true если токен валиден, false иначе
      */
     boolean validateToken(String token);
-    
+
     /**
      * Извлекает ID пользователя из токена
      *
@@ -40,4 +40,12 @@ public interface JwtService {
      * @return UUID пользователя
      */
     UUID getUserIdFromToken(String token);
+
+    /**
+     * Извлекает роль пользователя из токена
+     *
+     * @param token JWT токен
+     * @return роль пользователя
+     */
+    String getRoleFromToken(String token);
 }
