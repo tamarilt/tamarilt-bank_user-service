@@ -2,7 +2,7 @@ name: CD
 
 on:
   push:
-    branches: [main]
+    branches: [dev]
 
 env:
   IMAGE_NAME: ghcr.io/tamarilt/tamarilt-bank-user-service
